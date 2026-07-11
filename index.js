@@ -20,7 +20,7 @@ app.use(express.json())
 
 app.use(requestLogger)
 
-morgan.token('body', (request, response) => {
+morgan.token('body', (request) => {
 
    if (request.method === 'POST') {
       return JSON.stringify(request.body)
@@ -36,20 +36,18 @@ app.use(cors())
 app.use(express.static('dist'))
 
 
-app.get('/info', (request, response) => {
-   const totalPersons = persons.length
-   const currentDate = new Date()
+app.get('/info', async (request, response, next) => {
+   try {
+      const totalPersons = await Person.countDocuments({})
+      const currentDate = new Date()
 
-   const info = `<p>Phonebook has info for ${totalPersons}</p>
-   <p>${currentDate}</p>`
+      const info = `<p>Phonebook has info for ${totalPersons} people</p>
+      <p>${currentDate}</p>`
 
-   response.send(info)
-})
-
-app.get('/api/persons', (request, response) => {
-   Person.find({}).then(persons => {
-      response.json(persons)
-   })
+      response.send(info)
+   } catch (error) {
+      next(error)
+   }
 })
 
 
@@ -66,11 +64,6 @@ app.get('/api/persons/:id', (request, response, next) => {
       .catch(error => next(error))
 })
 
-
-const generateId = () => {
-   const newId = Math.floor(Math.random() * 1000000) + 1
-   return (newId)
-}
 
 app.post('/api/persons', (request, response, next) => {
    const body = request.body
@@ -97,9 +90,9 @@ app.put('/api/persons/:id', (request, response, next) => {
    }
 
    Person.findByIdAndUpdate(
-      request.params.id, 
-      person, 
-      { new: true, runValidators: true, context: 'query' } 
+      request.params.id,
+      person,
+      { new: true, runValidators: true, context: 'query' }
    )
       .then(updatedPerson => {
          if (updatedPerson) {
@@ -114,12 +107,11 @@ app.put('/api/persons/:id', (request, response, next) => {
 
 app.delete('/api/persons/:id', (request, response, next) => {
    Person.findByIdAndDelete(request.params.id)
-   .then(result => {
+   .then(() => {
       response.status(204).end()
       })
       .catch(error => next(error))
 })
-
 
 
 const errorHandler = (error, request, response, next) => {
