@@ -19,7 +19,8 @@ const App = (props) => {
     * Synchronizes the local component state with the backend server 
     * on the initial application render.*/
    useEffect(() => {
-      personService.getAll().then(initialPersons => {setContacts(initialPersons)})
+      personService.getAll().then(initialPersons => {console.log('What is arriving from the backend?:', initialPersons) 
+      setContacts(initialPersons)})
       }, [])
 
    /**
@@ -63,8 +64,11 @@ const App = (props) => {
                   }, 5000)
                })
                .catch(error => {
-                  console.error('Error during PUT request', error)
-                  setErrorMessage(`Information of ${changedContact.name} has already been removed from server`)
+                  // Access the error message sent by the backend
+                  const backendError = error.response.data.error
+                  console.error('Validation failed:', backendError)
+
+                  setErrorMessage(backendError)
                   setNotificationType('error')
 
                   setTimeout(() => {
@@ -94,11 +98,22 @@ const App = (props) => {
          setNewNumber('')
 
          setErrorMessage(`Added ${returnedContact.name}`)
+         setNotificationType('success')
             setTimeout(() => {
                setErrorMessage(null)
             }, 5000)
       })
-      
+      .catch(error => {
+         const backendError = error.response.data.error
+         console.error('Validation failed during POST:', backendError)
+
+         setErrorMessage(backendError)
+         setNotificationType('error') 
+
+         setTimeout(() => {
+            setErrorMessage(null)
+         }, 5000)
+      })
    }
 
 
