@@ -36,19 +36,15 @@ app.use(cors())
 app.use(express.static('dist'))
 
 
-app.get('/info', async (request, response, next) => {
-   try {
-      const totalPersons = await Person.countDocuments({})
-      const currentDate = new Date()
 
-      const info = `<p>Phonebook has info for ${totalPersons} people</p>
-      <p>${currentDate}</p>`
-
-      response.send(info)
-   } catch (error) {
-      next(error)
-   }
+app.get('/api/persons', (request, response, next) => {
+   Person.find({}).then(persons => {
+      response.json(persons)
+   })
+   .catch(error => next(error))
 })
+
+
 
 
 app.get('/api/persons/:id', (request, response, next) => {
